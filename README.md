@@ -2,9 +2,18 @@
 RFID Tag controlled Entry Door Control System
 ##### Prozessor Typ: Arduino Mini Pro 5 Volt
 ##### Components:
-- Front End Controller Arduino Mini Pro
-- RFID-Reader and Display Unit (mounted outside beside the entry door)
+- Front End Controller Arduino Mini Pro<br><img src="/images/Screenshot 2018-11-06 08.17.54.png" width="300" height="" ><br> <br>
+- RFID-Reader and Display Unit (mounted outside beside the entry door)<br><img src="/images/Screenshot 2018-11-06 09.19.30.png" width="200" height="" ><br> <br>
 - 12 VDC power supply with rechargeable battery (12V 20Ah)
 - Raspberry Pi 3 located in Server room - connected via serial link
+- KESO MOZY eco (Motorzylinder) 12VDC
+
 ##### Output Signals:
-##### Output Signals:
+- unlock KESO Motorzylinder pulse
+- unlock KESO Motorzylinder permanantely
+- I2C Signal to Display Unit
+
+##### Input Signals:
+- Wiegand Bus (D0 & D1) from RFID-Card reader
+- KESO MOZY 'UNLOCK' signal
+- 'ring' signal from Siedle Door Station
