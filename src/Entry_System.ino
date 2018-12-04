@@ -19,7 +19,7 @@
 #define SIEDLE 4        // input open signal SIEDLE
 #define RING 5          // input SIEDLE ring signal - added by Dieter Haude on 24.05.2018
 #define LOCK_SENSE 6    // input - sense lock contact
-#define free_2 7         
+#define free_2 7
 #define OPEN_PULSE 8    // output - open pulse long as HIGH
 #define OPEN_PERM 9     // output - open door permanantely as long as high
 #define LED 10          // output - LED changes to green if LOW
@@ -37,7 +37,7 @@
  * 3. SIEDLE Signal - rot
  * 4. TBD - blau?
  */
- 
+
 // Callback methods prototypes
 void tRFRCallback();
 void tDStCallback();
@@ -84,19 +84,19 @@ void setup() {
   pinMode(LED_1, OUTPUT);
   pinMode(LED_2, OUTPUT);
   pinMode(LED_3, OUTPUT);
-  
+
   pinMode(LOCK_SENSE, INPUT_PULLUP);
   pinMode(SIEDLE, INPUT_PULLUP);
   pinMode(RING, INPUT_PULLUP);  // added by Dieter Haude on 24.05.2018
-  
+
   digitalWrite(OPEN_PULSE, true);
   digitalWrite(OPEN_PERM, true);
   digitalWrite(BEEP, true);
   digitalWrite(LED, true);
   digitalWrite(LED_1, false);
   digitalWrite(LED_2, false);
-  digitalWrite(LED_3, false);    
-  
+  digitalWrite(LED_3, false);
+
   runner.init();
   runner.addTask(tRFR);
   runner.addTask(tDLo);
@@ -109,24 +109,21 @@ void setup() {
   lcd.clear();
   lcd.backlight();
   lcd.print("Hello");
-  delay(500); 
-  wdt_enable(WDTO_2S);  // Set up Watchdog Timer 2 seconds - added by Dieter Haude on 17.08.2018  
+  delay(500);
+  wdt_enable(WDTO_2S);  // Set up Watchdog Timer 2 seconds - added by Dieter Haude on 17.08.2018
   tRFR.enable();        // start cyclic readout of reader
   tDSt.enable();        // start cyclic readout of door status
   lcd.clear();
   lcd.noBacklight();
 }
 
-// Functions following -------------------------------------------------
-
-// START of Tasks
-
+// FUNCTIONS (Tasks) ----------------------------
 void tRFRCallback() {
   // Setze Watchdog Zähler zurück
   wdt_reset();  // added by Dieter Haude on 17.08.2018
   if (wg.available() && wg.getCode() > 5)  {                // check for data on Wiegand Bus
-   Serial.println((String)"card;" + wg.getCode());    
-    wg.delCode();                                           // 
+   Serial.println((String)"card;" + wg.getCode());
+    wg.delCode();                                           //
   }
  }
 
@@ -139,21 +136,22 @@ void tDStCallback() {
     Serial.println((String)"lock;" + a);
     a ? digitalWrite(LED_2, true) : digitalWrite(LED_2, false);
     }
-    
+
   if(b != bhis) {
     bhis = b;
     Serial.println((String)"siedle;" + b);
     b ? digitalWrite(LED_1, false) : digitalWrite(LED_1, true);
     }
-    
+
   // added by Dieter Haude on 24.05.2018
   if(r != rhis) {
     rhis = r;
     Serial.println((String)"ring;" + r); // corrected by Dieter on 28.06.2018
     }
 }
-// END of Tasks
- 
+// END OF TASKS ---------------------------------
+
+// FUNCTIONS ------------------------------------
 void LOCK_DOOR(void) {              // BACK TO NORMAL LOCKING
   digitalWrite(OPEN_PULSE, true);
   digitalWrite(OPEN_PERM, true);
@@ -164,16 +162,16 @@ void LOCK_DOOR(void) {              // BACK TO NORMAL LOCKING
 void UNLOCK_DOOR(void) {            // send Unlock Door pulse for 'SEC_OPEN' seconds
   digitalWrite(OPEN_PULSE, false);
   digitalWrite(LED, false);         // LED RFID-Reader
-  digitalWrite(LED_3, true);  
+  digitalWrite(LED_3, true);
   tDLo.restartDelayed(SEC_OPEN * SECONDS);  // start task in 'SEC_OPEN' sec to close door
-  } 
+  }
 
 void UNLOCK_PERM(void) {            // Unlock Door permanantely
   digitalWrite(OPEN_PERM, false);
   digitalWrite(LED, false);         // LED RFID-Reader
   digitalWrite(LED_3, true);
-  } 
-  
+  }
+
 void LED_BEEP() {
   digitalWrite(BEEP, false);
   tRBe.setCallback(&LED_BEEP2);
@@ -227,47 +225,49 @@ void send_crc32(String Str) {
   Serial.print("crc;"); // Wrote first text
   Serial.println(checksum,HEX); // and before line end checksum as HEX
 }
+// End Funktions --------------------------------
 
+// Funktions Serial Input (Event) ---------------
 void evalSerialData() {
   byte len = inStr.length();          // check lenght changed by MM 10.01.2018
   send_crc32(inStr.substring(0,len));
   if (inStr.substring(0, 3) == ">A<") {   // UNLOCK DOOR
-    UNLOCK_DOOR(); 
+    UNLOCK_DOOR();
     return;
   }
   if (inStr.substring(0, 3) == ">B<") {   // 1 BEEP
     tRBe.setCallback(&LED_BEEP);
-    tRBe.restart(); 
+    tRBe.restart();
     return;
   }
   if (inStr.substring(0, 3) == ">C<") {   // 2 Beep's
     tRBe.setCallback(&LED_2TBEEP);
-    tRBe.restart(); 
+    tRBe.restart();
     return;
-  }        
+  }
   if (inStr.substring(0, 3) == ">D<") {   // 3 Beep's
     tRBe.setCallback(&LED_3TBEEP);
-    tRBe.restart(); 
+    tRBe.restart();
     return;
-  }  
+  }
   if (inStr.substring(0, 3) == ">P<") {   // UNLOCK PERMANENT
     UNLOCK_PERM();
-    return; 
-  }       
+    return;
+  }
   if (inStr.substring(0, 3) == ">L<") {   // BACK TO NORMAL MODE
     LOCK_DOOR();
-    return; 
-  } 
-  if (inStr.substring(0, 3) == ">F<") {   // CLEAR DISPLAY
-    lcd.clear(); 
     return;
-  }  
+  }
+  if (inStr.substring(0, 3) == ">F<") {   // CLEAR DISPLAY
+    lcd.clear();
+    return;
+  }
   if (inStr.substring(0, 3) == ">G<") {   // BACKLIGHT ON
     lcd.backlight();
     return;
-  } 
+  }
   if (inStr.substring(0, 3) == ">H<") {   // BACKLIGHT OFF
-    lcd.noBacklight(); 
+    lcd.noBacklight();
     return;
   }
 
@@ -283,7 +283,7 @@ void evalSerialData() {
     lcd.backlight(); lcd.setCursor(0,1);
     lcd.print(inStr.substring(3,19));   // cut string lenght to 16 char  changed by MM 10.01.2018
     return;
-  }     
+  }
 
   if (inStr.substring(0, 3) == "R1T") {  // print to LCD row 1 timed changed DH 24.1.
     inStr.concat("              ");     // add blanks to string  changed by MM 10.01.2018
@@ -298,12 +298,9 @@ void evalSerialData() {
     lcd.backlight(); lcd.setCursor(0,1);
     lcd.print(inStr.substring(3,19));   // cut string lenght to 16 char  changed by MM 10.01.2018
     tBCl.restartDelayed(SEC_LIGHT * SECONDS);      // changed by DieterH on 18.10.2017
-  }     
+  }
 }
 
-void loop() {
-  runner.execute();
-}
 /*
  SerialEvent occurs whenever a new data comes in the
  hardware serial RX.  This routine is run between each
@@ -316,6 +313,12 @@ void serialEvent() {
     evalSerialData();
     inStr ="";
   } else {
-    inStr += inChar;  
+    inStr += inChar;
   }
+}
+// End Funktions Serial Input -------------------
+
+// PROGRAM LOOP AREA ----------------------------
+void loop() {
+  runner.execute();
 }
