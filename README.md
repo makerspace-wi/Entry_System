@@ -1,4 +1,5 @@
 # Entry_System
+<<<<<<< HEAD
 RFID Tag controlled Entry Door Control System
 ##### Prozessor Typ: Arduino Mini Pro 5 Volt
 ##### Components:
@@ -18,3 +19,6 @@ RFID Tag controlled Entry Door Control System
 - KESO MOZY 'UNLOCK' signal
 - 'ring' signal from Siedle Door Station
 <img alt="README-10833f0f.JPG" 
+=======
+Entry Control System
+>>>>>>> 3cc2dd11ff0f1c8c583693f78b0f99c610abff5d
