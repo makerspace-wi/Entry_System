@@ -61,7 +61,7 @@ LiquidCrystal_I2C lcd(0x27,16,2);  // set the LCD address to 0x27 for a 16 chars
 byte ahis = 0;       // door status history value ****
 byte bhis = 1;       // manuell door open signal von SIEDLE
 byte rhis = 1;       // ring signal von SIEDLE - added by Dieter Haude on 24.05.2018
-byte SEC_OPEN =1;    // number of seconds to hold door open after valid UID
+byte SEC_OPEN = 1;    // number of seconds to hold door open after valid UID
 
 String inStr = "";   // a string to hold incoming data
 
