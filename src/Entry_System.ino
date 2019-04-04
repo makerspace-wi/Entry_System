@@ -216,7 +216,7 @@ void DispBlCl() {
   lcd.noBacklight();
   lcd.clear();
 }
-
+/*
 void send_crc32(String Str) {
   unsigned int numBytes = Str.substring(2).length();
   char byteBuffer[17];
@@ -225,12 +225,14 @@ void send_crc32(String Str) {
   Serial.print("crc;"); // Wrote first text
   Serial.println(checksum,HEX); // and before line end checksum as HEX
 }
+*/
+
 // End Funktions --------------------------------
 
 // Funktions Serial Input (Event) ---------------
 void evalSerialData() {
   byte len = inStr.length();          // check lenght changed by MM 10.01.2018
-  send_crc32(inStr.substring(0,len));
+  // send_crc32(inStr.substring(0,len));
   if (inStr.substring(0, 3) == ">A<") {   // UNLOCK DOOR
     UNLOCK_DOOR();
     return;
