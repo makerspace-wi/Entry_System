@@ -2,7 +2,7 @@
  * last changes on 17.08.2018 by Dieter Haude
  * changed: added watchdog
  */
-#define Version "3.1"
+#define Version "3.2"
 
 #include <Wiegand.h>
 #include <TaskScheduler.h>
