@@ -8,7 +8,7 @@
 #include <TaskScheduler.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
-#include <CRC32.h>
+// #include <CRC32.h>
 #include <avr/wdt.h>    // added by Dieter Haude on 17.08.2018
 
 #define SECONDS 1000    // multiplier for second
