@@ -1,8 +1,8 @@
 /* started on 11DEC2017 - uploaded on 06.01.2018 by Dieter
- * last changes on 17.08.2018 by Dieter Haude
- * changed: added watchdog
+ * last changes on 25.06.2019 by Dieter Haude (MM)
+ * changed: added watchdog and disable watchdog at program start
  */
-#define Version "3.2"
+#define Version "3.3"
 
 #include <Wiegand.h>
 #include <TaskScheduler.h>
@@ -68,6 +68,8 @@ String inStr = "";   // a string to hold incoming data
 int bufferCount;     // Anzahl der eingelesenen Zeichen
 
 void setup() {
+  wdt_disable();    // switch watch_dog off - added by Dieter Haude (MM) on 25.06.2019
+
   Serial.begin(115200);
 
   wg.begin();        // start Wiegand Bus Control
@@ -110,11 +112,11 @@ void setup() {
   lcd.backlight();
   lcd.print("Hello");
   delay(500);
-  wdt_enable(WDTO_2S);  // Set up Watchdog Timer 2 seconds - added by Dieter Haude on 17.08.2018
   tRFR.enable();        // start cyclic readout of reader
   tDSt.enable();        // start cyclic readout of door status
   lcd.clear();
   lcd.noBacklight();
+  wdt_enable(WDTO_2S);  // Set up Watchdog Timer 2 seconds - added by Dieter Haude (MM) on 25.06.2019
 }
 
 // FUNCTIONS (Tasks) ----------------------------
@@ -122,7 +124,7 @@ void tRFRCallback() {
   // Setze Watchdog Zähler zurück
   wdt_reset();  // added by Dieter Haude on 17.08.2018
   if (wg.available() && wg.getCode() > 5)  {                // check for data on Wiegand Bus
-   Serial.println((String)"card;" + wg.getCode());
+    Serial.println((String)"card;" + wg.getCode());
     wg.delCode();                                           //
   }
  }
@@ -231,7 +233,6 @@ void send_crc32(String Str) {
 
 // Funktions Serial Input (Event) ---------------
 void evalSerialData() {
-  byte len = inStr.length();          // check lenght changed by MM 10.01.2018
   // send_crc32(inStr.substring(0,len));
   if (inStr.substring(0, 3) == ">A<") {   // UNLOCK DOOR
     UNLOCK_DOOR();
