@@ -1,8 +1,8 @@
 /* started on 11DEC2017 - uploaded on 06.01.2018 by Dieter
  * last changes on 25.06.2019 by Dieter Haude (MM)
- * changed: added watchdog and disable watchdog at program start
+ * changed: added watchdog and disable watchdog at program start, sent message after start
  */
-#define Version "3.3"
+#define Version "3.4"
 
 #include <Wiegand.h>
 #include <TaskScheduler.h>
@@ -108,6 +108,7 @@ void setup() {
 
 // Turn on the blacklight and print a message.
 // Grundstellung nach Start
+  Serial.println("ENTRY;POR");  // Entry System restart MM 15.07.19
   lcd.clear();
   lcd.backlight();
   lcd.print("Hello");
