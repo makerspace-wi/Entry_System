@@ -108,7 +108,7 @@ void setup() {
 
 // Turn on the blacklight and print a message.
 // Grundstellung nach Start
-  Serial.println("ENTRY;POR");  // Entry System restart MM 15.07.19
+  Serial.println("entry;POR");  // Entry System restart MM 15.07.19
   lcd.clear();
   lcd.backlight();
   lcd.print("Hello");
