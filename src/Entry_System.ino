@@ -2,7 +2,7 @@
  * last changes on 25.06.2019 by Dieter Haude (MM)
  * changed: added watchdog and disable watchdog at program start, sent message after start
  */
-#define Version "3.4"
+#define Version "3.4"// (Test =3.x ==> 3.5)
 
 #include <Wiegand.h>
 #include <TaskScheduler.h>
