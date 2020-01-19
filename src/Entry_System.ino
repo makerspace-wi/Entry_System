@@ -1,17 +1,33 @@
 /* started on 11DEC2017 - uploaded on 06.01.2018 by Dieter
- * last changes on 25.06.2019 by Dieter Haude (MM)
- * changed: added watchdog and disable watchdog at program start, sent message after start
- */
-#define Version "3.4"// (Test =3.x ==> 3.5)
 
+Commands from Raspi
+'>A<'   - UNLOCK DOOR
+'>B<'   - 1 BEEP
+'>C<'   - 2 BEEP
+'>D<'   - 3 BEEP
+'>P<'   - UNLOCK PERMANENT
+'>L<'   - BACK TO NORMAL MODE
+'>F<'   - CLEAR DISPLAY
+'>G<'   - BACKLIGHT ON
+'>H<'   - BACKLIGHT OFF
+'R1C'   - print to LCD row 1 continous
+'R2C'   - print to LCD row 2 continous
+'R1T'   - print to LCD row 1 timed
+'R2T'   - print to LCD row 2 timed
+'WDTL'  - watch dog timer low pulse
+'WDTH'  - watch dog timer high pulse
+
+last changes on 18.01.2020 by Michael Muehl
+changed: add externel watch dog with ATTiny
+ */
+#define Version "3.5"// (Test =3.x ==> 3.5)
+
+#include <Arduino.h>
 #include <Wiegand.h>
 #include <TaskScheduler.h>
 #include <Wire.h>
 #include <LiquidCrystal_I2C.h>
 // #include <CRC32.h>
-#include <avr/wdt.h>    // added by Dieter Haude on 17.08.2018
-
-#define SECONDS 1000    // multiplier for second
 
 // Pin Assignments
 #define DATA0 2         // input - Wiegand Data 0
@@ -19,15 +35,17 @@
 #define SIEDLE 4        // input open signal SIEDLE
 #define RING 5          // input SIEDLE ring signal - added by Dieter Haude on 24.05.2018
 #define LOCK_SENSE 6    // input - sense lock contact
-#define free_2 7
+#define FREE_2 7
 #define OPEN_PULSE 8    // output - open pulse long as HIGH
 #define OPEN_PERM 9     // output - open door permanantely as long as high
 #define LED 10          // output - LED changes to green if LOW
 #define BEEP 11         // output - peep sound on if LOW
 
-#define LED_1 A3        // LED 1 red
-#define LED_2 A2        // LED 2 yellow
-#define LED_3 A1        // LED 3 green
+#define LED_1 A3        // output - LED 1 red
+#define LED_2 A2        // output - LED 2 yellow
+#define LED_3 A1        // output - LED 3 green
+#define PULS_WDT 13     // output - LED blue, watch dog timer pulse
+
 #define SEC_LIGHT 5     // number of seconds let backlight on after writing value to display
 
 //LED_BUILTIN           // LED_BUILTIN blue
@@ -46,11 +64,11 @@ void LED_BEEP();
 void DispBlCl();
 
 //Tasks
-Task tRFR(500, TASK_FOREVER, &tRFRCallback);  // task checking the RFID-Reader
-Task tDLo(100, TASK_ONCE, &LOCK_DOOR);        // task to lock the door again
-Task tDSt(200, TASK_FOREVER, &tDStCallback);  // check door contacts status
-Task tRBe(1,TASK_ONCE, &LED_BEEP);            // task for Reader beeper
-Task tBCl(100, TASK_ONCE, &DispBlCl);         // task to clear display and Backlight off
+Task tRFR(TASK_SECOND / 2, TASK_FOREVER, &tRFRCallback);  // task checking the RFID-Reader
+Task tDLo(TASK_SECOND / 10, TASK_ONCE, &LOCK_DOOR);       // task to lock the door again
+Task tDSt(TASK_SECOND / 5, TASK_FOREVER, &tDStCallback);  // check door contacts status
+Task tRBe(1,TASK_ONCE, &LED_BEEP);                        // task for Reader beeper
+Task tBCl(TASK_SECOND / 10, TASK_ONCE, &DispBlCl);        // task to clear display and Backlight off
 
 
 WIEGAND wg;
@@ -61,15 +79,17 @@ LiquidCrystal_I2C lcd(0x27,16,2);  // set the LCD address to 0x27 for a 16 chars
 byte ahis = 0;       // door status history value ****
 byte bhis = 1;       // manuell door open signal von SIEDLE
 byte rhis = 1;       // ring signal von SIEDLE - added by Dieter Haude on 24.05.2018
-byte SEC_OPEN = 1;    // number of seconds to hold door open after valid UID
+byte SEC_OPEN = 1;   // number of seconds to hold door open after valid UID
+// external watch dog
+byte wdTimeL = 3; // value * (Task tRFR(TASK_SECOND / 2)
+byte wdTimeH = 1; // value * (Task tRFR(TASK_SECOND / 2)
+byte wdCount = 0; // counter for watch dog
 
 String inStr = "";   // a string to hold incoming data
 
 int bufferCount;     // Anzahl der eingelesenen Zeichen
 
 void setup() {
-  wdt_disable();    // switch watch_dog off - added by Dieter Haude (MM) on 25.06.2019
-
   Serial.begin(115200);
 
   wg.begin();        // start Wiegand Bus Control
@@ -86,18 +106,20 @@ void setup() {
   pinMode(LED_1, OUTPUT);
   pinMode(LED_2, OUTPUT);
   pinMode(LED_3, OUTPUT);
+  pinMode(PULS_WDT, OUTPUT);
 
   pinMode(LOCK_SENSE, INPUT_PULLUP);
   pinMode(SIEDLE, INPUT_PULLUP);
   pinMode(RING, INPUT_PULLUP);  // added by Dieter Haude on 24.05.2018
 
-  digitalWrite(OPEN_PULSE, true);
-  digitalWrite(OPEN_PERM, true);
-  digitalWrite(BEEP, true);
-  digitalWrite(LED, true);
-  digitalWrite(LED_1, false);
-  digitalWrite(LED_2, false);
-  digitalWrite(LED_3, false);
+  digitalWrite(OPEN_PULSE, HIGH);
+  digitalWrite(OPEN_PERM, HIGH);
+  digitalWrite(BEEP, HIGH);
+  digitalWrite(LED, HIGH);
+  digitalWrite(LED_1, LOW);
+  digitalWrite(LED_2, LOW);
+  digitalWrite(LED_3, LOW);
+  digitalWrite(PULS_WDT, LOW);
 
   runner.init();
   runner.addTask(tRFR);
@@ -117,17 +139,21 @@ void setup() {
   tDSt.enable();        // start cyclic readout of door status
   lcd.clear();
   lcd.noBacklight();
-  wdt_enable(WDTO_2S);  // Set up Watchdog Timer 2 seconds - added by Dieter Haude (MM) on 25.06.2019
 }
 
 // FUNCTIONS (Tasks) ----------------------------
 void tRFRCallback() {
-  // Setze Watchdog Zähler zurück
-  wdt_reset();  // added by Dieter Haude on 17.08.2018
+  // signal for watch dog timer (software)
+  if (wdCount == wdTimeL) digitalWrite(PULS_WDT, HIGH);
+  if (wdCount == (wdTimeL + wdTimeH) && digitalRead(PULS_WDT)) {
+    digitalWrite(PULS_WDT, LOW);
+    wdCount = 0;
+  }
   if (wg.available() && wg.getCode() > 5)  {                // check for data on Wiegand Bus
     Serial.println((String)"card;" + wg.getCode());
     wg.delCode();                                           //
   }
+  ++wdCount;
  }
 
 void tDStCallback() {
@@ -166,7 +192,7 @@ void UNLOCK_DOOR(void) {            // send Unlock Door pulse for 'SEC_OPEN' sec
   digitalWrite(OPEN_PULSE, false);
   digitalWrite(LED, false);         // LED RFID-Reader
   digitalWrite(LED_3, true);
-  tDLo.restartDelayed(SEC_OPEN * SECONDS);  // start task in 'SEC_OPEN' sec to close door
+  tDLo.restartDelayed(TASK_SECOND * SEC_OPEN);  // start task in 'SEC_OPEN' sec to close door
   }
 
 void UNLOCK_PERM(void) {            // Unlock Door permanantely
@@ -293,7 +319,7 @@ void evalSerialData() {
     inStr.concat("              ");     // add blanks to string  changed by MM 10.01.2018
     lcd.backlight(); lcd.setCursor(0,0);
     lcd.print(inStr.substring(3,19)); // cut string lenght to 16 char  changed by MM 10.01.2018
-    tBCl.restartDelayed(SEC_LIGHT * SECONDS);      // changed by DieterH on 18.10.2017
+    tBCl.restartDelayed(TASK_SECOND * SEC_LIGHT);      // changed by DieterH on 18.10.2017
     return;
   }
 
@@ -301,7 +327,21 @@ void evalSerialData() {
     inStr.concat("              ");     // add blanks to string  changed by MM 10.01.2018
     lcd.backlight(); lcd.setCursor(0,1);
     lcd.print(inStr.substring(3,19));   // cut string lenght to 16 char  changed by MM 10.01.2018
-    tBCl.restartDelayed(SEC_LIGHT * SECONDS);      // changed by DieterH on 18.10.2017
+    tBCl.restartDelayed(TASK_SECOND * SEC_LIGHT);      // changed by DieterH on 18.10.2017
+  }
+
+  if (inStr.substring(0, 4) == "WDTL" && inStr.length() > 4 && inStr.length() < 7) {  // change watch dog low pulse.  && inStr.length() <= 7
+    if (inStr.substring(4).toInt() > 0) {
+      wdTimeL = inStr.substring(4).toInt();
+      digitalWrite(PULS_WDT, LOW);
+    }
+  }
+
+  if (inStr.substring(0, 4) == "WDTH" && inStr.length() > 4  && inStr.length() < 7) {  // change watch dog high pulse
+    if (inStr.substring(4).toInt() > 0) {
+      wdTimeH = inStr.substring(4).toInt();
+      digitalWrite(PULS_WDT, HIGH);
+    }
   }
 }
 
