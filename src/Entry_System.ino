@@ -17,7 +17,7 @@ Commands from Raspi
 'WDTL'  - watch dog timer low pulse
 'WDTH'  - watch dog timer high pulse
 
-last changes on 18.01.2020 by Michael Muehl
+last changes on 19.01.2020 by Michael Muehl
 changed: add externel watch dog with ATTiny
  */
 #define Version "3.5"// (Test =3.x ==> 3.5)
