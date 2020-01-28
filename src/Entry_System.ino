@@ -330,10 +330,6 @@ void evalSerialData() {
     tBCl.restartDelayed(TASK_SECOND * SEC_LIGHT);      // changed by DieterH on 18.10.2017
   }
 
-  if (inStr.substring(0,3) == "INIT") { // Initialize all new
-    asm volatile ("jmp 0");
-  }
-
   if (inStr.substring(0, 4) == "WDTL" && inStr.length() > 4 && inStr.length() < 7) {  // change watch dog low pulse.  && inStr.length() <= 7
     if (inStr.substring(4).toInt() > 0) {
       wdTimeL = inStr.substring(4).toInt();
