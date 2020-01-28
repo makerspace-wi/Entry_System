@@ -17,10 +17,10 @@ Commands from Raspi
 'WDTL'  - watch dog timer low pulse
 'WDTH'  - watch dog timer high pulse
 
-last changes on 19.01.2020 by Michael Muehl
-changed: add externel watch dog with ATTiny
+last changes on 28.01.2020 by Michael Muehl
+changed: add externel watch dog with ATTiny, change Version length.
  */
-#define Version "3.5"// (Test =3.x ==> 3.5)
+#define Version "3.5.5"// (Test =3.5.5 ==> 3.5.6)
 
 #include <Arduino.h>
 #include <Wiegand.h>
@@ -130,7 +130,7 @@ void setup() {
 
 // Turn on the blacklight and print a message.
 // Grundstellung nach Start
-  Serial.println("entry;POR");  // Entry System restart MM 15.07.19
+  Serial.println("entry;POR;V" + String(Version));  // Entry System restart MM 15.07.19
   lcd.clear();
   lcd.backlight();
   lcd.print("Hello");
