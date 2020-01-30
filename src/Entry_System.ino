@@ -30,23 +30,23 @@ changed: add externel watch dog with ATTiny, change Version length.
 // #include <CRC32.h>
 
 // Pin Assignments
-#define DATA0 2         // input - Wiegand Data 0
-#define DATA1 3         // input - Wiegand Data 1
-#define SIEDLE 4        // input open signal SIEDLE
-#define RING 5          // input SIEDLE ring signal - added by Dieter Haude on 24.05.2018
-#define LOCK_SENSE 6    // input - sense lock contact
-#define FREE_2 7
-#define OPEN_PULSE 8    // output - open pulse long as HIGH
-#define OPEN_PERM 9     // output - open door permanantely as long as high
-#define LED 10          // output - LED changes to green if LOW
-#define BEEP 11         // output - peep sound on if LOW
+#define DATA0 2         // input  2PIN 5 - Wiegand Data 0
+#define DATA1 3         // input  2PIN 6 - Wiegand Data 1
+#define SIEDLE 4        // input  KPIN 1,2 [opto] - open signal SIEDLE
+#define RING 5          // input  KPIN 3,4 [opto] - SIEDLE ring signal - added by Dieter Haude on 24.05.2018
+#define LOCK_SENSE 6    // input  1PIN 2 [opto] - sense lock contact
+#define FREE_2 7        // output 1PIN 3 -
+#define OPEN_PULSE 8    // output 1PIN 4 - open pulse long as HIGH
+#define OPEN_PERM 9     // output 1PIN 5 - open door permanantely as long as high
+#define LED 10          // output 2PIN 7 - LED changes to green if LOW
+#define BEEP 11         // output 2PIN 8 - peep sound on if LOW
 
 #define LED_1 A3        // output - LED 1 red
 #define LED_2 A2        // output - LED 2 yellow
 #define LED_3 A1        // output - LED 3 green
 #define PULS_WDT 13     // output - LED blue, watch dog timer pulse
 
-#define SEC_LIGHT 5     // number of seconds let backlight on after writing value to display
+#define SEC_LIGHT 5     // number of seconds set backlight on after writing value to display
 
 //LED_BUILTIN           // LED_BUILTIN blue
 /*
@@ -130,7 +130,6 @@ void setup() {
 
 // Turn on the blacklight and print a message.
 // Grundstellung nach Start
-  Serial.println("entry;POR;V" + String(Version));  // Entry System restart MM 15.07.19
   lcd.clear();
   lcd.backlight();
   lcd.print("Hello");
@@ -139,6 +138,7 @@ void setup() {
   tDSt.enable();        // start cyclic readout of door status
   lcd.clear();
   lcd.noBacklight();
+  Serial.println("entry;POR;V" + String(Version));  // Entry System restart MM 15.07.19
 }
 
 // FUNCTIONS (Tasks) ----------------------------
