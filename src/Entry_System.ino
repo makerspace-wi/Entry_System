@@ -35,7 +35,7 @@ changed: add externel watch dog with ATTiny, change Version length.
 #define SIEDLE 4        // input  KPIN 1,2 [opto] - open signal SIEDLE
 #define RING 5          // input  KPIN 3,4 [opto] - SIEDLE ring signal - added by Dieter Haude on 24.05.2018
 #define LOCK_SENSE 6    // input  1PIN 2 [opto] - sense lock contact
-#define FREE_2 7        // output 1PIN 3 -
+#define FREE_2 7        // input  1PIN 3 -
 #define OPEN_PULSE 8    // output 1PIN 4 - open pulse long as HIGH
 #define OPEN_PERM 9     // output 1PIN 5 - open door permanantely as long as high
 #define LED 10          // output 2PIN 7 - LED changes to green if LOW
