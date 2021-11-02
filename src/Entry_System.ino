@@ -149,9 +149,9 @@ void tRFRCallback() {
     digitalWrite(PULS_WDT, LOW);
     wdCount = 0;
   }
-  if (wg.available() && wg.getCode() > 5)  {                // check for data on Wiegand Bus
-    Serial.println((String)"card;" + wg.getCode());
-    wg.delCode();                                           //
+  if (wg.available())  {                // check for data on Wiegand Bus
+    Serial.println((String)"card;" + wg.getCode() + "; W" + wg.getWiegandType());
+    wg.delCode();
   }
   ++wdCount;
  }
