@@ -150,7 +150,7 @@ void tRFRCallback() {
     wdCount = 0;
   }
   if (wg.available())  {                // check for data on Wiegand Bus
-    Serial.println((String)"card;" + wg.getCode() + "; W" + wg.getWiegandType());
+    Serial.println((String)"card;" + wg.getCode() + ";W" + wg.getWiegandType());
     wg.delCode();
   }
   ++wdCount;
