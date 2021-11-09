@@ -20,7 +20,7 @@ Commands from Raspi
 last changes on 28.01.2020 by Michael Muehl
 changed: add externel watch dog with ATTiny, change Version length.
  */
-#define Version "3.5.5"// (Test =3.5.5 ==> 3.5.6)
+#define Version "3.6.0"// (Test =3.6.0 ==> 3.6.1)
 
 #include <Arduino.h>
 #include <Wiegand.h>
@@ -64,7 +64,7 @@ void LED_BEEP();
 void DispBlCl();
 
 //Tasks
-Task tRFR(TASK_SECOND / 2, TASK_FOREVER, &tRFRCallback);  // task checking the RFID-Reader
+Task tRFR(TASK_SECOND / 4, TASK_FOREVER, &tRFRCallback);  // task checking the RFID-Reader
 Task tDLo(TASK_SECOND / 10, TASK_ONCE, &LOCK_DOOR);       // task to lock the door again
 Task tDSt(TASK_SECOND / 5, TASK_FOREVER, &tDStCallback);  // check door contacts status
 Task tRBe(1,TASK_ONCE, &LED_BEEP);                        // task for Reader beeper
@@ -91,9 +91,9 @@ int bufferCount;     // Anzahl der eingelesenen Zeichen
 
 void setup() {
   Serial.begin(115200);
+  inStr.reserve(40); // reserve for instr serial input
 
   wg.begin();        // start Wiegand Bus Control
-  inStr.reserve(17); // reserve for instr serial input
 
   Wire.begin();      // I2C
   lcd.init();        // initialize the LCD
@@ -130,16 +130,18 @@ void setup() {
 
 // Turn on the blacklight and print a message.
 // Grundstellung nach Start
-  lcd.clear();
+  tRFR.enable();        // start cyclic readout of reader
+  tDSt.enable();        // start cyclic readout of door status
+
   lcd.backlight();
   lcd.print("Hello");
   delay(500);
-  tRFR.enable();        // start cyclic readout of reader
-  tDSt.enable();        // start cyclic readout of door status
   lcd.clear();
   lcd.noBacklight();
+
   Serial.println("entry;POR;V" + String(Version));  // Entry System restart MM 15.07.19
 }
+// Setup End ------------------------------------
 
 // FUNCTIONS (Tasks) ----------------------------
 void tRFRCallback() {
@@ -149,9 +151,9 @@ void tRFRCallback() {
     digitalWrite(PULS_WDT, LOW);
     wdCount = 0;
   }
-  if (wg.available() && wg.getCode() > 5)  {                // check for data on Wiegand Bus
-    Serial.println((String)"card;" + wg.getCode());
-    wg.delCode();                                           //
+  if (wg.available())  {                // check for data on Wiegand Bus
+    Serial.println((String)"card;" + wg.getCode() + ";W" + wg.getWiegandType());
+    wg.delCode();
   }
   ++wdCount;
  }
@@ -298,26 +300,30 @@ void evalSerialData() {
   }
   if (inStr.substring(0, 3) == ">H<") {   // BACKLIGHT OFF
     lcd.noBacklight();
+    lcd.clear();
     return;
   }
 
   if (inStr.substring(0, 3) == "R1C") {  // print to LCD row 1 continous changed DH 24.1.
     inStr.concat("              ");     // add blanks to string  changed by MM 10.01.2018
-    lcd.backlight(); lcd.setCursor(0,0);
+    lcd.backlight(); 
+    lcd.setCursor(0,0);
     lcd.print(inStr.substring(3,19)); // cut string lenght to 16 char  changed by MM 10.01.2018
     return;
   }
 
   if (inStr.substring(0, 3) == "R2C") {  // print to LCD row 2 continous changed DH 24.1.
     inStr.concat("              ");     // add blanks to string  changed by MM 10.01.2018
-    lcd.backlight(); lcd.setCursor(0,1);
+    lcd.backlight();
+    lcd.setCursor(0,1);                 
     lcd.print(inStr.substring(3,19));   // cut string lenght to 16 char  changed by MM 10.01.2018
     return;
   }
 
   if (inStr.substring(0, 3) == "R1T") {  // print to LCD row 1 timed changed DH 24.1.
     inStr.concat("              ");     // add blanks to string  changed by MM 10.01.2018
-    lcd.backlight(); lcd.setCursor(0,0);
+    lcd.backlight();
+    lcd.setCursor(0,0);
     lcd.print(inStr.substring(3,19)); // cut string lenght to 16 char  changed by MM 10.01.2018
     tBCl.restartDelayed(TASK_SECOND * SEC_LIGHT);      // changed by DieterH on 18.10.2017
     return;
@@ -325,7 +331,8 @@ void evalSerialData() {
 
   if (inStr.substring(0, 3) == "R2T") {  // print to LCD row 2 changed DH 24.1.
     inStr.concat("              ");     // add blanks to string  changed by MM 10.01.2018
-    lcd.backlight(); lcd.setCursor(0,1);
+    lcd.backlight();
+    lcd.setCursor(0,1);
     lcd.print(inStr.substring(3,19));   // cut string lenght to 16 char  changed by MM 10.01.2018
     tBCl.restartDelayed(TASK_SECOND * SEC_LIGHT);      // changed by DieterH on 18.10.2017
   }
@@ -351,12 +358,16 @@ void evalSerialData() {
  time loop() runs, so using delay inside loop can delay
  response.  Multiple bytes of data may be available.
  */
-void serialEvent() {
+void serialEvent()
+{
   char inChar = (char)Serial.read();
-  if (inChar == '\x0d') {
+  if (inChar == '\x0d')
+  {
     evalSerialData();
-    inStr ="";
-  } else {
+    inStr = "";
+  }
+  else if (inChar != '\x0a')
+  {
     inStr += inChar;
   }
 }

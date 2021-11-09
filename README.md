@@ -1,5 +1,11 @@
 # Entry_System
 ### RFID Tag controlled Entry Door Control System
+
+Neu November 2021: RFID-Lesegerät mit Tastatur für erweiterte Sicherheit und Funktionalität
+
+<img src="https://user-images.githubusercontent.com/42463588/139805497-821f0670-6d50-4a81-94b0-f01fccef9582.jpg" width="300">
+
+
 ##### Prozessor Typ: Arduino Mini Pro 5 Volt
 ##### Components:
 - Front End Controller Arduino Mini Pro<br><img src="/images/Screenshot 2018-11-06 08.17.54.png" width="300" height="" ><br> <br>
