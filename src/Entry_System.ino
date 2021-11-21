@@ -17,8 +17,8 @@ Commands from Raspi
 'WDTL'  - watch dog timer low pulse
 'WDTH'  - watch dog timer high pulse
 
-last changes on 28.01.2020 by Michael Muehl
-changed: add externel watch dog with ATTiny, change Version length.
+last changes on 21.11.2021 by Michael Muehl
+changed: add new code detection for new rfid station.
  */
 #define Version "3.6.0"// (Test =3.6.0 ==> 3.6.1)
 
