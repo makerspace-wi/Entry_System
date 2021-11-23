@@ -3,8 +3,7 @@
 
 Neu November 2021: RFID-Lesegerät mit Tastatur für erweiterte Sicherheit und Funktionalität
 
-<img src="https://user-images.githubusercontent.com/42463588/139805497-821f0670-6d50-4a81-94b0-f01fccef9582.jpg" width="300">
-
+<img src="https://user-images.githubusercontent.com/42463588/139805497-821f0670-6d50-4a81-94b0-f01fccef9582.jpg" width="300"> <img src="https://user-images.githubusercontent.com/42463588/142990275-76a2b56b-06c9-4e1f-aacf-9f1de2daf6c3.jpg" width="380">
 
 ##### Prozessor Typ: Arduino Mini Pro 5 Volt
 ##### Components:
